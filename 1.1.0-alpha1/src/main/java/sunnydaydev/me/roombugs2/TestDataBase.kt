@@ -16,13 +16,19 @@ interface TestDao {
     @Insert
     fun insert(testItem: TestItem)
 
+    @Insert
+    fun insert(testItemTag: TestItemTag)
+
+    @Transaction
+    @Query("SELECT * FROM TestItem WHERE id = :id")
+    fun query(id: Long): List<TestItemAndTags>
 }
 
 @Database(
         version = 1,
-        entities = [TestItem::class]
+        entities = [TestItem::class, TestItemTag::class]
 )
-abstract class TestDataBase: RoomDatabase() {
+abstract class TestDataBase : RoomDatabase() {
 
     abstract val dao: TestDao
 
@@ -36,3 +42,11 @@ abstract class TestDataBase: RoomDatabase() {
     }
 
 }
+
+@Entity
+data class TestItemTag(@PrimaryKey val id: Long,
+                       val data: String)
+
+data class TestItemAndTags @JvmOverloads constructor(@field:Embedded val testItem: TestItem,
+                                                     @field:Relation(entity = TestItemTag::class, parentColumn = "id", entityColumn = "id")
+                                                     var tags: List<TestItemTag> = listOf())
